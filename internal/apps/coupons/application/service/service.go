@@ -10,7 +10,7 @@ type Service struct {
 }
 
 func NewCouponSrv(r repo.CouponRepo) srv.CouponSrv {
-	return Service{
+	return &Service{
 		rpo: r,
 	}
 }

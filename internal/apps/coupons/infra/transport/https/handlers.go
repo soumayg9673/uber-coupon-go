@@ -1,8 +1,10 @@
 package https
 
 import (
+	"encoding/json"
 	"net/http"
 
+	"github.com/soumayg9673/uber-coupon-go/internal/apps/coupons"
 	"github.com/soumayg9673/uber-coupon-go/internal/apps/coupons/domain/service"
 )
 
@@ -11,16 +13,35 @@ type CouponHandler struct {
 }
 
 func MountCouponHandler(mux *http.ServeMux, s service.CouponSrv) {
-	cp := http.NewServeMux()
-	mux.Handle("/coupons/", http.StripPrefix("/coupons", cp))
-
 	hdl := CouponHandler{
 		srv: s,
 	}
 
-	cp.HandleFunc("GET /hello", hdl.RouteCheck)
+	mux.HandleFunc("POST /coupons", hdl.CreateCoupon)
 }
 
-func (h *CouponHandler) RouteCheck(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(200)
+func (h *CouponHandler) CreateCoupon(w http.ResponseWriter, r *http.Request) {
+	var reqBody struct {
+		Name   string `json:"name"`
+		Amount int    `json:"amount"`
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&reqBody); err != nil {
+		w.WriteHeader(400)
+		return
+	}
+
+	if err := h.srv.CreateCoupon(r.Context(), reqBody.Name, reqBody.Amount); err != nil {
+		switch err {
+		case coupons.ErrDuplicateCoupon:
+			w.WriteHeader(409)
+			return
+		default:
+			w.WriteHeader(500)
+		}
+		return
+	}
+
+	w.WriteHeader(201)
 }

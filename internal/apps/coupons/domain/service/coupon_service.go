@@ -1,3 +1,7 @@
 package service
 
-type CouponSrv interface{}
+import "context"
+
+type CouponSrv interface {
+	CreateCoupon(ctx context.Context, code string, amount int) error
+}
