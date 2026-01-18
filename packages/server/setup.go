@@ -17,6 +17,7 @@ func Run() error {
 
 	appCfg := app{
 		config: getConfig(),
+		pgsql:  &db.PgSQL{},
 		mux:    http.NewServeMux(),
 	}
 

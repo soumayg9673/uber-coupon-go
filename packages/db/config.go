@@ -34,7 +34,7 @@ type Db interface {
 func NewConn(dt dbType, d Db, dc ConfigDB) error {
 	switch dt {
 	case PSQL:
-		d.NewConn(dc)
+		return d.NewConn(dc)
 	}
 	return ErrNoDbTypeExists
 }

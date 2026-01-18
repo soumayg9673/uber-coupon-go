@@ -18,7 +18,7 @@ type config struct {
 
 func getConfig() (c config) {
 	// Setting port
-	c.Addr = os.Getenv("APP_ENV")
+	c.Addr = os.Getenv("SERVER_ADDR")
 
 	// Setting server read timeout
 	if timeOut, err := time.ParseDuration(os.Getenv("SERVER_READ_TIMEOUT")); err != nil {
