@@ -34,7 +34,7 @@ func (h *CouponHandler) CreateCoupon(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.srv.CreateCoupon(r.Context(), reqBody.Name, reqBody.Amount); err != nil {
 		switch err {
-		case coupons.ErrDuplicateCoupon:
+		case coupons.ErrCouponAlreadyExists:
 			w.WriteHeader(409)
 			return
 		default:

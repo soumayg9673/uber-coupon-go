@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/lib/pq"
 	"github.com/soumayg9673/uber-coupon-go/internal/apps/coupons"
@@ -23,16 +24,15 @@ func (p *Persist) CreateCoupon(ctx context.Context, code string, amount int) err
 	if _, err := p.db.ExecContext(ctx, `
 		INSERT INTO coupons (
 		code, 
-		amount
-		) VALUES ($1, $2);
+		amount,
+		remaining_amount
+		) VALUES ($1, $2, $2);
 		`,
 		code,
 		amount); err != nil {
-		if e, ok := err.(*pq.Error); ok {
-			switch e.Code {
-			case "23505":
-				return coupons.ErrDuplicateCoupon
-			}
+		var pgErr *pq.Error
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return coupons.ErrCouponAlreadyExists
 		}
 		return err
 	}
