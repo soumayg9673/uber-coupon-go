@@ -15,5 +15,29 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  coupons:
+    build: 
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      SERVER_ADDR: ${SERVER_ADDR}
+      SERVER_WRITE_TIMEOUT: ${SERVER_WRITE_TIMEOUT}
+      SERVER_IDLE_TIMEOUT: ${SERVER_IDLE_TIMEOUT}
+      SERVER_READ_TIMEOUT: ${SERVER_READ_TIMEOUT}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: db
+      POSTGRES_SSL: ${POSTGRES_SSL}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+    depends_on:
+      - db
+    restart: always
+  
+
 volumes:
   postgres_data:

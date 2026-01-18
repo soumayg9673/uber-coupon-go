@@ -1,0 +1,11 @@
+# --- VCS ---
+.git
+.gitignore
+
+# --- Docker / Compose ---
+docker-compose*.yml
+
+# --- Docs ---
+README.md
+
+.env
