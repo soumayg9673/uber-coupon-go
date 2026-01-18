@@ -13,7 +13,7 @@ type config struct {
 	ReadTimeout  time.Duration `env:"SERVER_READ_TIMEOUT"`
 	WriteTimeout time.Duration `env:"SERVER_WRITE_TIMEOUT"`
 	IdleTimeout  time.Duration `env:"SERVER_IDLE_TIMEOUT"`
-	PgSQL        db.ConfigDB   `env:"PGSQL_DB_X"`
+	PgSQL        db.ConfigDB   `env:"POSTGRES_X"`
 }
 
 func getConfig() (c config) {
@@ -42,12 +42,12 @@ func getConfig() (c config) {
 	}
 
 	// Setting Postgres DB credentials
-	c.PgSQL.Name = os.Getenv("PGSQL_DB_NAME")
-	c.PgSQL.Host = os.Getenv("PGSQL_DB_HOST")
-	c.PgSQL.Port, _ = strconv.Atoi(os.Getenv("PGSQL_DB_PORT"))
-	c.PgSQL.User = os.Getenv("PGSQL_DB_USER")
-	c.PgSQL.Pwd = os.Getenv("PGSQL_DB_PWD")
-	c.PgSQL.Ssl = os.Getenv("PGSQL_DB_SSL")
+	c.PgSQL.Name = os.Getenv("POSTGRES_DB")
+	c.PgSQL.Host = os.Getenv("POSTGRES_HOST")
+	c.PgSQL.Port, _ = strconv.Atoi(os.Getenv("POSTGRES_PORT"))
+	c.PgSQL.User = os.Getenv("POSTGRES_USER")
+	c.PgSQL.Pwd = os.Getenv("POSTGRES_PASSWORD")
+	c.PgSQL.Ssl = os.Getenv("POSTGRES_SSL")
 
 	return
 }
