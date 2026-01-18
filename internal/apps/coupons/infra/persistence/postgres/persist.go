@@ -24,9 +24,8 @@ func (p *Persist) CreateCoupon(ctx context.Context, code string, amount int) err
 	if _, err := p.db.ExecContext(ctx, `
 		INSERT INTO coupons (
 		code, 
-		amount,
-		remaining_amount
-		) VALUES ($1, $2, $2);
+		amount
+		) VALUES ($1, $2);
 		`,
 		code,
 		amount); err != nil {

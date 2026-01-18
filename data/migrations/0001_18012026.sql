@@ -2,7 +2,6 @@ CREATE TABLE coupons (
     id BIGSERIAL PRIMARY KEY,
     code VARCHAR(90) NOT NULL UNIQUE,
     amount INT NOT NULL,
-    remaining_amount INT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
