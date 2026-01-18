@@ -26,6 +26,8 @@ func Run() error {
 		return err
 	}
 
+	appCfg.mountApiRoutes()
+
 	httpServer := http.Server{
 		Addr:         appCfg.config.Addr,
 		Handler:      appCfg.mux,
