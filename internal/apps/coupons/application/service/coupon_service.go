@@ -23,7 +23,7 @@ func (s *Service) CouponInfo(ctx context.Context, code string) (dto.CouponInfoRe
 	body := dto.CouponInfoResp{
 		Name:      data.Name,
 		Amount:    data.Amount,
-		RemAmount: data.Amount - len(data.User),
+		RemAmount: data.RemAmount,
 		Users:     data.User,
 	}
 

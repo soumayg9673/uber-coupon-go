@@ -25,8 +25,9 @@ func (p *Persist) CreateCoupon(ctx context.Context, code string, amount int) err
 	if _, err := p.db.ExecContext(ctx, `
 		INSERT INTO coupons (
 			code, 
-			amount
-		) VALUES ($1, $2);
+			amount,
+			remaining_amt
+		) VALUES ($1, $2, $2);
 		`,
 		code,
 		amount); err != nil {
@@ -39,7 +40,7 @@ func (p *Persist) CreateCoupon(ctx context.Context, code string, amount int) err
 	return nil
 }
 
-func (p *Persist) ClaimCoupon(ctx context.Context, code, userId string) error {
+func (p *Persist) ClaimCoupon(ctx context.Context, code, userId string) (err error) {
 	tx, err := p.db.BeginTx(ctx, &sql.TxOptions{
 		Isolation: sql.LevelReadCommitted,
 	})
@@ -47,26 +48,19 @@ func (p *Persist) ClaimCoupon(ctx context.Context, code, userId string) error {
 		return err
 	}
 
-	// Success : commit
-	// Error : rollback
-	defer func() {
-		if err != nil {
-			_ = tx.Rollback()
-			return
-		}
-		err = tx.Commit()
-	}()
+	defer tx.Rollback()
 
 	var couponId int
-	var couponBalance int
+	var balance int
 	if err := tx.QueryRowContext(ctx, `
-		SELECT id, amount
+		SELECT id, remaining_amt
 		FROM coupons
-		WHERE code = $1;
+		WHERE code = $1
+		FOR UPDATE
 		`,
 		code).Scan(
 		&couponId,
-		&couponBalance,
+		&balance,
 	); err != nil {
 		if err == sql.ErrNoRows {
 			return coupons.ErrCouponInvalid
@@ -74,19 +68,7 @@ func (p *Persist) ClaimCoupon(ctx context.Context, code, userId string) error {
 		return err
 	}
 
-	var remainBalance int
-	if err := tx.QueryRowContext(ctx, `
-		SELECT count(user_id)
-		FROM coupons
-		INNER JOIN claims
-			ON claims.coupon_id = coupons.id
-		WHERE coupons.code = $1;
-		`,
-		code).Scan(&remainBalance); err != nil {
-		return err
-	}
-
-	if remainBalance >= couponBalance {
+	if balance == 0 {
 		return coupons.ErrCouponExpired
 	}
 
@@ -105,12 +87,20 @@ func (p *Persist) ClaimCoupon(ctx context.Context, code, userId string) error {
 		return err
 	}
 
-	return nil
+	if _, err = tx.ExecContext(ctx, `
+		UPDATE coupons
+		SET remaining_amt = remaining_amt - 1
+		WHERE id = $1;
+	`, couponId); err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func (p *Persist) CouponInfo(ctx context.Context, code string) (dto.CouponInfoDB, error) {
 	rows, err := p.db.QueryContext(ctx, `
-		SELECT coupons.code, coupons.amount, claims.user_id
+		SELECT coupons.code, coupons.amount, coupons.remaining_amt, claims.user_id
 		FROM coupons
 		LEFT JOIN claims ON claims.coupon_id = coupons.id
 		WHERE coupons.code = $1;
@@ -131,6 +121,7 @@ func (p *Persist) CouponInfo(ctx context.Context, code string) (dto.CouponInfoDB
 		if err := rows.Scan(
 			&data.Name,
 			&data.Amount,
+			&data.RemAmount,
 			&user,
 		); err != nil {
 			return dto.CouponInfoDB{}, err
