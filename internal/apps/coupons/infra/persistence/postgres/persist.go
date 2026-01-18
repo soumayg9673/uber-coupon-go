@@ -7,6 +7,7 @@ import (
 
 	"github.com/lib/pq"
 	"github.com/soumayg9673/uber-coupon-go/internal/apps/coupons"
+	"github.com/soumayg9673/uber-coupon-go/internal/apps/coupons/domain/dto"
 	"github.com/soumayg9673/uber-coupon-go/internal/apps/coupons/domain/repo"
 )
 
@@ -105,4 +106,39 @@ func (p *Persist) ClaimCoupon(ctx context.Context, code, userId string) error {
 	}
 
 	return nil
+}
+
+func (p *Persist) CouponInfo(ctx context.Context, code string) (dto.CouponInfoDB, error) {
+	rows, err := p.db.QueryContext(ctx, `
+		SELECT coupons.code, coupons.amount, claims.user_id
+		FROM coupons
+		LEFT JOIN claims ON claims.coupon_id = coupons.id
+		WHERE coupons.code = $1;
+	`, code)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return dto.CouponInfoDB{}, coupons.ErrCouponInvalid
+		}
+		return dto.CouponInfoDB{}, err
+	}
+
+	defer rows.Close()
+
+	data := dto.CouponInfoDB{}
+
+	for rows.Next() {
+		var user sql.NullString
+		if err := rows.Scan(
+			&data.Name,
+			&data.Amount,
+			&user,
+		); err != nil {
+			return dto.CouponInfoDB{}, err
+		}
+		if user.Valid {
+			data.User = append(data.User, user.String)
+		}
+	}
+
+	return data, nil
 }
