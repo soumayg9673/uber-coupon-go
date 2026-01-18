@@ -26,7 +26,13 @@ Clone the repository:
 ```bash
 git clone https://github.com/soumayg9673/uber-coupon-go.git
 cd uber-coupon-go
-docker-compose up --build
+```
+
+Run Application:
+
+```bash
+chmod +x ./setup.sh
+./setup.sh
 ```
 
 ---
