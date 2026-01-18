@@ -8,4 +8,7 @@ docker-compose*.yml
 # --- Docs ---
 README.md
 
+# --- Tests ---
+./test
+
 .env
